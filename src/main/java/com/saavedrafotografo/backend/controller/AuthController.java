@@ -36,13 +36,18 @@ public class AuthController {
     }
 
     // LOGIN
-   @PostMapping("/login")
+@PostMapping("/login")
 public ResponseEntity<?> login(@RequestBody Map<String, String> request) {
     String email = request.get("email");
     String password = request.get("password");
 
-    User user = userRepository.findByEmail(email)
-            .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+    var optionalUser = userRepository.findByEmail(email);
+    if (optionalUser.isEmpty()) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(Map.of("error", "Usuario no encontrado"));
+    }
+
+    User user = optionalUser.get();
 
     if (!passwordEncoder.matches(password, user.getPassword())) {
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
@@ -56,6 +61,7 @@ public ResponseEntity<?> login(@RequestBody Map<String, String> request) {
             "token", token
     ));
 }
+
 
 
 }
